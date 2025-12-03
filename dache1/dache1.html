@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>打车</title>
+<style>
+  body {
+    font-family: "Microsoft YaHei", sans-serif;
+    font-size: 70px;
+    line-height: 1.8;
+    margin: 0 auto;
+    max-width: 1400px;
+    padding: 60px 40px;
+
+ .relative-img {
+   position: relative;
+   top: 50px; /* 向下移动50像素 */
+   left: 100px; /* 向右移动100像素 */
+ }
+
+
+
+  h2 {
+    text-align: center;
+    font-size: 90px;
+    margin-bottom: 60px;
+  }
+
+  h2 span {
+    display: block;
+    font-size: 40px;
+    margin-top: 10px;
+  }
+
+  /* 聊天行布局 */
+  .dialogue-line {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    width: 100%;
+  }
+
+  /* 所有头像都在左侧 */
+  .dialogue-line .avatar {
+    flex-shrink: 0;
+    width: 55px;
+    height: 55px;
+    margin-right: 20px;
+  }
+
+  /* 对话框部分 */
+  .bubble {
+    background: rgba(255, 255, 255, 1);
+    border-radius: 20px;
+    padding: 25px 30px;
+    flex: 1;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  }
+
+  .sentence-container {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .char-block {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    text-align: center;
+  }
+
+  .char-block .pinyin {
+    font-family: "Microsoft YaHei", sans-serif;
+    font-size: 40px;
+    line-height: 1.2;
+  }
+
+  .char-block .hanzi {
+    font-family: "楷体", sans-serif;
+    font-size: 85px;
+    cursor: default;
+
+    border-radius: 4px;
+    padding: 0 3px;
+  }
+
+  .char-block .hanzi:hover {
+    background-color: #eeeeee;
+  }
+
+  .char-block .tooltiptext {
+    visibility: hidden;
+    width: max-content;
+    max-width: 800px;
+    background-color: #CCE8CF;
+    color: #000;
+    text-align: center;
+    padding: 10px 14px;
+    border-radius: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 103%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-family: "Microsoft YaHei", sans-serif;
+    font-size: 80px;
+    line-height: 1.3;
+  }
+
+  .char-block .hanzi:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .bulgarian {
+    font-family: "Microsoft YaHei", sans-serif;
+    font-size: 50px;
+    margin-top: 10px;
+    color: #222;
+  }
+
+  .play-btn {
+    margin-left: 0px;
+    cursor: pointer;
+    background-color: #000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 5px 8px;
+    font-size: 20px;
+    transition: background-color 0.3s;
+  }
+
+  .play-btn:hover {
+    background-color: #333;
+  }
+
+/* 改造标题气泡 */
+/* ===== 最美标题气泡（Muse Edition）===== */
+
+.title-bubble-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 50px 0 110px;
+}
+
+.title-bubble {
+  background: #fff;
+  border-radius: 42px;
+  padding: 65px 110px 58px;
+  text-align: center;
+  border: 2.5px solid #000;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.08);
+  position: relative;
+}
+
+/* 顶部装饰线（高级感来源） */
+.title-bubble::before {
+  content: "";
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 4px;
+  border-radius: 2px;
+  background: #000;
+}
+
+.title-bubble .sentence-container {
+  justify-content: center;
+  gap: 50px;
+  margin-top: 20px;
+}
+
+.title-bubble .char-block {
+  min-width: 150px;
+}
+
+.title-bubble .pinyin {
+  font-size: 46px;
+  margin-bottom: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: #111;
+}
+
+.title-bubble .hanzi {
+  font-size: 112px;
+  font-family: "楷体", "STKaiti", serif;
+  color: #000;
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
+.title-bubble .bulgarian {
+  font-size: 58px;
+  margin-top: 35px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: #000;
+  position: relative;
+}
+
+/* 保语下划线装饰 */
+.title-bubble .bulgarian::after {
+  content: "";
+  display: block;
+  width: 180px;
+  height: 3px;
+  background: black;
+  margin: 20px auto 0;
+  border-radius: 3px;
+}
+
+/* 高级小动效（很轻，不浮夸） */
+.title-bubble {
+  animation: titleFloat 1.2s ease-out forwards;
+}
+
+@keyframes titleFloat {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 手机适配 */
+@media (max-width: 768px) {
+  .title-bubble {
+    padding: 45px 35px;
+  }
+
+  .title-bubble .hanzi {
+    font-size: 72px;
+  }
+
+  .title-bubble .pinyin {
+    font-size: 28px;
+  }
+
+  .title-bubble .bulgarian {
+    font-size: 35px;
+  }
+}
+</style>
+
+<script>
+function playSentenceAudio(filename) {
+  const audio = new Audio(filename);
+  audio.play();
+}
+</script>
+</head>
+
+
+<img src="data:image/png;base64,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" alt="装饰图" class="top-left-img" alt="logo" class="relative-img">
+
+<body>
+<div class="title-bubble-wrapper">
+  <div class="title-bubble">
+
+    <div class="sentence-container">
+
+      <span class="char-block">
+        <span class="pinyin">dǎ chē</span>
+        <span class="hanzi">
+          打车
+        </span>
+      </span>
+
+
+
+    </div>
+
+    <div class="bulgarian">
+    Вземам/поръчам такси  
+    </div>
+
+  </div>
+</div>
+
+<br>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">wáng</span><span class="hanzi">王<span class="tooltiptext">(фамилно име)</span></span></span>
+      <span class="char-block"><span class="pinyin">gē</span><span class="hanzi">哥<span class="tooltiptext">Батко</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">，<span class="tooltiptext"></span></span></span>
+      <span class="char-block"><span class="pinyin">kě yǐ</span><span class="hanzi">可以<span class="tooltiptext">може</span></span></span>
+      <span class="char-block"><span class="pinyin">bāng</span><span class="hanzi">帮<span class="tooltiptext">помогнеш</span></span></span>
+      <span class="char-block"><span class="pinyin">wǒ</span><span class="hanzi">我<span class="tooltiptext">ми</span></span></span>
+      <span class="char-block"><span class="pinyin">kàn</span><span class="hanzi">看<span class="tooltiptext">погледнеш</span></span></span>
+      <span class="char-block"><span class="pinyin">yí xià</span><span class="hanzi">一下<span class="tooltiptext">за съвсем малко време<br>(показва учтивост)</span></span></span>
+      <span class="char-block"><span class="pinyin">zhè ge</span><span class="hanzi">这个<span class="tooltiptext">това</span></span></span>
+      <span class="char-block"><span class="pinyin">ma</span><span class="hanzi">吗<span class="tooltiptext">ли</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">？<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch1.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Батко Wáng, може ли да ми помогнеш да погледнеш това?</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">zhè ge</span><span class="hanzi">这个<span class="tooltiptext">това</span></span></span>
+      <span class="char-block"><span class="pinyin">duì</span><span class="hanzi">对<span class="tooltiptext">правилно</span></span></span>
+      <span class="char-block"><span class="pinyin">ma</span><span class="hanzi">吗<span class="tooltiptext">ли</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">？<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch2.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Това правилно ли е?</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+   <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#FFF4E1" stroke="#F5B041" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#F5B041"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6	H20	v-6z" fill="#F5B041"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">“<span class="tooltiptext">моля</span></span></span>
+      <span class="char-block"><span class="pinyin">qǐng</span><span class="hanzi">请<span class="tooltiptext">моля</span></span></span>
+      <span class="char-block"><span class="pinyin">què rèn</span><span class="hanzi">确认<span class="tooltiptext">потвърдете</span></span></span>
+      <span class="char-block"><span class="pinyin">shàng chē</span><span class="hanzi">上车<span class="tooltiptext">качвам се в кола</span></span></span>
+      <span class="char-block"><span class="pinyin">dì diǎn</span><span class="hanzi">地点<span class="tooltiptext">място (地： земя<br>点diǎn：дочка)</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">：<span class="tooltiptext">——</span></span></span>
+      <span class="char-block"><span class="pinyin">kāixīn</span><span class="hanzi">开心<span class="tooltiptext">радостен</span></span></span>
+      <span class="char-block"><span class="pinyin">gōngsī</span><span class="hanzi">公司<span class="tooltiptext">компания</span></span></span>
+      <span class="char-block"><span class="pinyin">nán</span><span class="hanzi">南<span class="tooltiptext">южна</span></span></span>
+      <span class="char-block"><span class="pinyin">mén</span><span class="hanzi">门<span class="tooltiptext">врата; порта</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">”<span class="tooltiptext"></span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">，<span class="tooltiptext"></span></span></span>
+      <span class="char-block"><span class="pinyin">duì de</span><span class="hanzi">对的<span class="tooltiptext">правилен</span></span></span>
+      <span class="char-block"><span class="pinyin">a</span><span class="hanzi">啊<span class="tooltiptext"></span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">！<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch3.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">„Моля потвърдете мястото за качване: южната порта на Компания Радост“, правилно е!</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">xiè xie</span><span class="hanzi">谢谢<span class="tooltiptext">Благодаря</span></span></span>
+      <span class="char-block"><span class="pinyin">nǐ</span><span class="hanzi">你<span class="tooltiptext">ти</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">！<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch4.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Благодаря ти!</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <div class="bubble">
+    <div class="sentence-container">
+        <span class="hanzi">（</span>
+        <span class="char-block"><span class="pinyin">guò le</span><span class="hanzi">过了<span class="tooltiptext">мина</span></span></span>
+        <span class="char-block"><span class="pinyin">yí huìr </span><span class="hanzi">一会儿<span class="tooltiptext">един момент</span></span></span>
+        <span class="hanzi">）</span>
+      <button class="play-btn" onclick="playSentenceAudio('dch.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">(След малко)</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#FFF4E1" stroke="#F5B041" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#F5B041"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6	H20	v-6z" fill="#F5B041"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">wéi</span><span class="hanzi">喂<span class="tooltiptext">Ало</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">，<span class="tooltiptext"></span></span></span>
+      <span class="char-block"><span class="pinyin">nín hǎo</span><span class="hanzi">您好<span class="tooltiptext">Здравейте</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">！<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch5.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Ало, здравейте!</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#FFF4E1" stroke="#F5B041" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#F5B041"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6	H20	v-6z" fill="#F5B041"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">wǒ</span><span class="hanzi">我<span class="tooltiptext">аз</span></span></span>
+      <span class="char-block"><span class="pinyin">dào</span><span class="hanzi">到<span class="tooltiptext">пристигнах в</span></span></span>
+      <span class="char-block"><span class="pinyin">кāixīn gōngsī</span><span class="hanzi">开心公司<span class="tooltiptext">Компания Радост</span></span></span>
+      <span class="char-block"><span class="pinyin">nán mén</span><span class="hanzi">南门<span class="tooltiptext">южна порта</span></span></span>
+      <span class="char-block"><span class="pinyin">le</span><span class="hanzi">了<span class="tooltiptext">(показва, че действие е завършено)</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">。<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch6.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Пристигнах в южната порта на Компания Радост.</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">ò ò</span><span class="hanzi">哦哦<span class="tooltiptext">О</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">，<span class="tooltiptext"></span></span></span>
+      <span class="char-block"><span class="pinyin">wǒ</span><span class="hanzi">我<span class="tooltiptext">аз</span></span></span>
+      <span class="char-block"><span class="pinyin">kàn dào le</span><span class="hanzi">看到了<span class="tooltiptext">виждам</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">！<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch7.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">О,  виждам го!</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">(<span class="tooltiptext"></span></span></span>
+      <span class="char-block"><span class="pinyin">zǒu  </span><span class="hanzi">走<span class="tooltiptext">вървях</span></span></span>
+      <span class="char-block"><span class="pinyin">dào</span><span class="hanzi">到<span class="tooltiptext">пристигам; до</span></span></span>
+      <span class="char-block"><span class="pinyin">chē</span><span class="hanzi">车<span class="tooltiptext">кола</span></span></span>
+      <span class="char-block"><span class="pinyin">páng</span><span class="hanzi">旁<span class="tooltiptext">до</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">）<span class="tooltiptext">(Приближих се до колата)</span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">(Приближих се до колата)</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">shī fu</span><span class="hanzi">师傅<span class="tooltiptext">майстор</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">，<span class="tooltiptext"></span></span></span>
+      <span class="char-block"><span class="pinyin">nín hǎo</span><span class="hanzi">您好<span class="tooltiptext">здравейте</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">！<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch8.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Здравейте!</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#FFF4E1" stroke="#F5B041" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#F5B041"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6	H20	v-6z" fill="#F5B041"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">nín hǎo</span><span class="hanzi">您好<span class="tooltiptext">Здравейте</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">！<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch9.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Здравейте!</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+   <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#FFF4E1" stroke="#F5B041" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#F5B041"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6	H20	v-6z" fill="#F5B041"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">shǒu jī</span><span class="hanzi">手机<span class="tooltiptext">мобилен телефон<br>( ръка: 手 shǒu )  ( машина: 机器  jī qì )</span></span></span>
+      <span class="char-block"><span class="pinyin">wěi hào</span><span class="hanzi">尾号<span class="tooltiptext">последни цифри ( 尾 wěi / 尾巴 wěi ba: опашка )  (号hào: номер)</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">？<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch10.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Последни цифри на телефония Ви номер?</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">bā bā bā bā</span><span class="hanzi">8888<span class="tooltiptext">8888</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">。<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch11.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">8888.</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#FFF4E1" stroke="#F5B041" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#F5B041"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6	H20	v-6z" fill="#F5B041"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">hǎo de</span><span class="hanzi">好的<span class="tooltiptext">Добре</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">！<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch12.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Добре!</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#FFF4E1" stroke="#F5B041" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#F5B041"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6	H20	v-6z" fill="#F5B041"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+        <span class="char-block"><span class="pinyin">qǐng</span><span class="hanzi">请<span class="tooltiptext">моля</span></span></span>
+        <span class="char-block"><span class="pinyin">jì</span><span class="hanzi">系<span class="tooltiptext">закопчавате</span></span></span>
+        <span class="char-block"><span class="pinyin">hǎo</span><span class="hanzi">好<span class="tooltiptext">добре / готово</span></span></span>
+        <span class="char-block"><span class="pinyin">ān quán</span><span class="hanzi">安全<span class="tooltiptext">безопасност</span></span></span>
+        <span class="char-block"><span class="pinyin">dài</span><span class="hanzi">带<span class="tooltiptext">колан ( 腰带 yāo dài = колан )</span></span></span>
+        <span class="hanzi">。</span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">。<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch13.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Моля, сложете предпазния колан.</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#FFF4E1" stroke="#F5B041" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#F5B041"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6	H20	v-6z" fill="#F5B041"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+
+        <span class="char-block"><span class="pinyin">qù</span><span class="hanzi">去<span class="tooltiptext">отивате</span></span></span>
+        <span class="hanzi">“</span>
+        <span class="char-block"><span class="pinyin">dōng fāng míng zhū</span><span class="hanzi">东方明珠<span class="tooltiptext">Перлата на изтока<br>(телевизионна кула в Шанхай)</span></span></span>
+        <span class="char-block"><span class="pinyin">gōng yuán</span><span class="hanzi">公园<span class="tooltiptext">парк</span></span></span>
+        <span class="char-block"><span class="pinyin">běi mén</span><span class="hanzi">北门<span class="tooltiptext">северна порта</span></span></span>
+        <span class="hanzi">”</span>
+        <span class="hanzi">，</span>
+        <span class="char-block"><span class="pinyin">duì</span><span class="hanzi">对<span class="tooltiptext">правилно</span></span></span>
+        <span class="char-block"><span class="pinyin">ma</span><span class="hanzi">吗<span class="tooltiptext">ли</span></span></span>
+        <span class="hanzi">？</span>
+      <button class="play-btn" onclick="playSentenceAudio('dch14.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Към „Парк Източна Перла, Северна порта“, правилно ли е?</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">duì</span><span class="hanzi">对<span class="tooltiptext">Дa / правилно</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">！<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch15.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Да!</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <div class="bubble">
+    <div class="sentence-container">
+        <span class="hanzi">（</span>
+        <span class="char-block"><span class="pinyin">guò le</span><span class="hanzi">过了<span class="tooltiptext">мина</span></span></span>
+        <span class="char-block"><span class="pinyin">yí huìr </span><span class="hanzi">一会儿<span class="tooltiptext">един момент</span></span></span>
+        <span class="hanzi">）</span>
+      <button class="play-btn" onclick="playSentenceAudio('dch.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">(След малко)</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#FFF4E1" stroke="#F5B041" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#F5B041"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6	H20	v-6z" fill="#F5B041"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">dào le</span><span class="hanzi">到了<span class="tooltiptext">Пристигнахме</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">！<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch16.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Пристигнахме!</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F0E6FA" stroke="#A78BFA" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#A78BFA"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6H20v-6z" fill="#A78BFA"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">xiè xie</span><span class="hanzi">谢谢<span class="tooltiptext">Благодаря</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">！<span class="tooltiptext"></span></span></span>
+      <span class="char-block"><span class="pinyin">zài jiàn</span><span class="hanzi">再见<span class="tooltiptext">Довиждане</span></span></span>
+      <span class="char-block"><span class="pinyin"></span><span class="hanzi">！<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch17.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Благодаря! Довиждане!</span>
+  </div>
+</div>
+
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#FFF4E1" stroke="#F5B041" stroke-width="3"/>
+    <circle cx="50" cy="38" r="16" fill="#F5B041"/>
+    <path d="M20 82c5-14 20-22 30-22s25 8 30 22v6	H20	v-6z" fill="#F5B041"/>
+  </svg>
+  <div class="bubble">
+    <div class="sentence-container">
+<span class="char-block"><span class="pinyin">bú kè qi</span><span class="hanzi">不客气<span class="tooltiptext">Няма защо</span></span></span>
+<span class="char-block"><span class="pinyin"></span><span class="hanzi">！<span class="tooltiptext"></span></span></span>
+<span class="char-block"><span class="pinyin">wán</span><span class="hanzi">玩<span class="tooltiptext">(Пожелавам Ви да) се забавлявате</span></span></span>
+<span class="char-block"><span class="pinyin">de</span><span class="hanzi">得<span class="tooltiptext"></span></span></span>
+<span class="char-block"><span class="pinyin">kāi xīn</span><span class="hanzi">开心<span class="tooltiptext">весело</span></span></span>
+<span class="char-block"><span class="pinyin"></span><span class="hanzi">！<span class="tooltiptext"></span></span></span>
+      <button class="play-btn" onclick="playSentenceAudio('dch18.mp3')">▶</button>
+    </div>
+    <span class="bulgarian">Няма защо! Приятно прекарване!</span>
+  </div>
+</div>
+
+
+<h2>Въпроси</h2>
+
+<!-- 1 -->
+<div class="dialogue-line">
+  <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F5B041" stroke="#F39C12" stroke-width="4"/>
+    <text x="50" y="62" text-anchor="middle" font-size="60" fill="white" font-family="Arial" font-weight="bold">1</text>
+  </svg>
+
+  <div class="bubble">
+    <div class="sentence-container">
+      <span class="char-block"><span class="pinyin">chéng kè</span><span class="hanzi">乘客<span class="tooltiptext">Пътник</span></span></span>
+      <span class="char-block"><span class="pinyin">cóng</span><span class="hanzi">从<span class="tooltiptext">от</span></span></span>
+      <span class="char-block"><span class="pinyin">nǎ lǐ</span><span class="hanzi">哪里<span class="tooltiptext">къде</span></span></span>
+      <span class="char-block"><span class="pinyin">chū fā</span><span class="hanzi">出发<span class="tooltiptext">тръгва</span></span></span>
+      <span class="char-block"><span class="pinyin">?</span><span class="hanzi">？<span class="tooltiptext">?</span></span></span>
+  </div>
+  <span class="bulgarian">Пътникът откъде тръгва?</span>
+</div>
+</div>
+
+<!-- 2 -->
+ <div class="dialogue-line">
+   <svg class="avatar" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="48" fill="#F5B041" stroke="#F39C12" stroke-width="4"/>
+    <text x="50" y="62" text-anchor="middle" font-size="60" fill="white" font-family="Arial" font-weight="bold">2</text>
+  </svg>
+
+  <div class="bubble">
+    <div class="sentence-container">    
+      <span class="char-block"><span class="pinyin">chéng kè</span><span class="hanzi">乘客<span class="tooltiptext">Пътник</span></span></span>
+      <span class="char-block"><span class="pinyin">yào</span><span class="hanzi">要<span class="tooltiptext">иска；ще</span></span></span>
+      <span class="char-block"><span class="pinyin">qù</span><span class="hanzi">去<span class="tooltiptext">отива</span></span></span>
+      <span class="char-block"><span class="pinyin">nǎ lǐ</span><span class="hanzi">哪里<span class="tooltiptext">къде</span></span></span>
+      <span class="char-block"><span class="pinyin">?</span><span class="hanzi">？<span class="tooltiptext">?</span></span></span>
+  </div>
+  <span class="bulgarian">Пътникът къде ще отива?</span>
+</div>
+</div>
+
+
+<style>
+a:link {text-decoration:none;}    /* unvisited link */
+a:visited {text-decoration:none;} /* visited link */
+a:hover {text-decoration:underline;}   /* mouse over link */
+a:active {text-decoration:underline;}  /* selected link */
+</style>
+
+<body>
+<p><b><a href="https://auto.hexun.com/2024-12-19/216285616.html" target="_blank">在上海高效打车及注意事项</a></b></p>
+</body>
+<div class="dialogue-line">
+    <div class="bubble">
+    <div class="sentence-container">
+        <span class="char-block"><span class="pinyin">jiào</span><span class="hanzi">叫<span class="tooltiptext">повиквам, поръчвам</span></span></span>
+        <span class="char-block"><span class="pinyin">chē</span><span class="hanzi">车<span class="tooltiptext">кола</span></span></span>
+        <span class="char-block"><span class="pinyin">shí</span><span class="hanzi">时<span class="tooltiptext">когато</span></span></span>
+        <span class="char-block"><span class="pinyin"></span><span class="hanzi">，<span class="tooltiptext"></span></span></span>
+        <span class="char-block"><span class="pinyin">zhǔnquè</span><span class="hanzi">准确<span class="tooltiptext">точно</span></span></span>
+        <span class="char-block"><span class="pinyin">shūrù</span><span class="hanzi">输入<span class="tooltiptext">въвеждам</span></span></span>
+        <span class="char-block"><span class="pinyin">shàngchē</span><span class="hanzi">上车<span class="tooltiptext">качване в превозно средство</span></span></span>
+        <span class="char-block"><span class="pinyin">dìdiǎn</span><span class="hanzi">地点<span class="tooltiptext">място</span></span></span>
+        <span class="char-block"><span class="pinyin">hé</span><span class="hanzi">和<span class="tooltiptext">и</span></span></span>
+    <span class="char-block"><span class="pinyin">mù dì</span><span class="hanzi">目的<span class="tooltiptext">цел</span></span></span>
+    <span class="char-block"><span class="pinyin">dì</span><span class="hanzi">地<span class="tooltiptext">( 目的地 mù dì dì：дестинация ) ( 地方 dì fаng , 地点 dì diǎn：място )</span></span></span>
+        <span class="char-block"><span class="pinyin">zhì guān</span><span class="hanzi">至关<span class="tooltiptext">изключително</span></span></span>
+        <span class="char-block"><span class="pinyin">zhòng yào</span><span class="hanzi">重要<span class="tooltiptext">важно</span></span></span>
+        <span class="char-block"><span class="pinyin"></span><span class="hanzi">。<span class="tooltiptext"></span></span></span>
+    </div>
+    <span class="bulgarian">Когато поръчвате кола, точното въвеждане на мястото на качване и дестинацията е изключително важно.</span>
+    </div>
+</div>
+
+<div class="dialogue-line">
+    <div class="bubble">
+    <div class="sentence-container">
+        <span class="char-block"><span class="pinyin">xiáng xì de</span><span class="hanzi">详细的<span class="tooltiptext">подробен</span></span></span>
+        <span class="char-block"><span class="pinyin">dì zhǐ</span><span class="hanzi">地址<span class="tooltiptext">адрес</span></span></span>
+        <span class="char-block"><span class="pinyin">néng</span><span class="hanzi">能<span class="tooltiptext">може</span></span></span>
+        <span class="char-block"><span class="pinyin">ràng</span><span class="hanzi">让<span class="tooltiptext">накара ... да ...</span></span></span>
+        <span class="char-block"><span class="pinyin">sī jī</span><span class="hanzi">司机<span class="tooltiptext">шофьор</span></span></span>
+        <span class="char-block"><span class="pinyin">gèng</span><span class="hanzi">更<span class="tooltiptext">по-</span></span></span>
+        <span class="char-block"><span class="pinyin">kuài</span><span class="hanzi">快<span class="tooltiptext">бързо</span></span></span>
+        <span class="char-block"><span class="pinyin">zhǎo dào</span><span class="hanzi">找到<span class="tooltiptext">намира</span></span></span>
+        <span class="char-block"><span class="pinyin">nín</span><span class="hanzi">您<span class="tooltiptext">Вие (учтиво)</span></span></span>
+        <span class="char-block"><span class="pinyin"></span><span class="hanzi">，<span class="tooltiptext"></span></span></span>
+        <span class="char-block"><span class="pinyin">jiǎn shǎo</span><span class="hanzi">减少<span class="tooltiptext">намалява</span></span></span>
+        <span class="char-block"><span class="pinyin">děng dài</span><span class="hanzi">等待<span class="tooltiptext">изчакване</span></span></span>
+        <span class="char-block"><span class="pinyin">shí jiān</span><span class="hanzi">时间<span class="tooltiptext">време</span></span></span>
+        <span class="char-block"><span class="pinyin"></span><span class="hanzi">。<span class="tooltiptext">.</span></span></span>
+    </div>
+    <span class="bulgarian">Подробният адрес позволява на шофьора да Ви намери по-бързо, намалявайки времето на изчакване.</span>
+    </div>
+</div>
+
+
+</body>
+</html>
